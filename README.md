@@ -27,7 +27,7 @@ Pastikan Anda memiliki instalasi Python 3. Karena aplikasi mengakses antarmuka k
 
 1. Clone repositori ini dari GitHub dan masuk ke dalam foldernya:
    ```bash
-   git clone https://github.com/<username>/CLI-Pass-Manager.git
+   git clone https://github.com/code-GiL/CLI-Pass-Manager
    cd CLI-Pass-Manager
    ```
 
