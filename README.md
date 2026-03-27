@@ -7,7 +7,7 @@ Sebuah aplikasi pengelola kata sandi berbasis antarmuka baris perintah (*Command
 ## Fitur Utama
 
 - **Kriptografi Mutakhir (Argon2id + AES-GCM 256-bit)**  
-  Menggunakan Argon2id (Pemenang kompetisi *Password Hashing Competition*) untuk mengelola Master Password, lalu menggunakan AES-GCM untuk memastikan seluruh isi data terenkripsi seutuhnya sekaligus bebas dari segala manipulasi (*Authenticated Encryption*).
+  Menggunakan Argon2id untuk mengelola Master Password, lalu menggunakan AES-GCM untuk memastikan seluruh isi data terenkripsi seutuhnya sekaligus bebas dari segala manipulasi (*Authenticated Encryption*).
 - **Anti-Brute Force (High Cost Parameter)**  
   Tingkat konsumsi Argon2id ditingkatkan (Cost RAM ~256 MB) demi memberikan jeda komputasi sebesar ~500ms di CPU/GPU modern pada setiap satu kali percobaan tebak password, membuat serangan *brute force offline* skala besar secara finansial merugikan.
 - **Ringan & Bebas State (Operasi CRUD Lengkap)**  
