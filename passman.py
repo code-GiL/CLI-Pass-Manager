@@ -140,17 +140,31 @@ class PasswordManager:
 
     def add_entry(self, master_password: str, label: str, username: str, password: str, notes: str = ""):
         db = self._load_db(master_password)
-        # Hindari duplikasi
-        if label in db:
-            print(f"Data untuk label '{label}' sudah ada! Gunakan nama yang berbeda atau fungsionalitas 'update'.")
-            del db
-            sys.exit(1)
-
-        db[label] = {
+        
+        new_data = {
             "username": username,
             "password": password,
             "notes": notes
         }
+
+        if label in db:
+            existing = db[label]
+            if isinstance(existing, list):
+                for item in existing:
+                    if item["username"] == username:
+                        print(f"Data untuk label '{label}' dengan username '{username}' sudah ada! Gunakan fungsionalitas 'update'.")
+                        del db
+                        sys.exit(1)
+                existing.append(new_data)
+                db[label] = existing
+            else:
+                if existing["username"] == username:
+                    print(f"Data untuk label '{label}' dengan username '{username}' sudah ada! Gunakan fungsionalitas 'update'.")
+                    del db
+                    sys.exit(1)
+                db[label] = [existing, new_data]
+        else:
+            db[label] = new_data
         
         print(f"Menyimpan ke {self.db_path}...")
         self._save_db(db, master_password)
@@ -158,19 +172,47 @@ class PasswordManager:
         
         del db, password
 
-    def update_entry(self, master_password: str, label: str, password: str = None, notes: str = None):
+    def update_entry(self, master_password: str, label: str, username: str = None, password: str = None, notes: str = None):
         db = self._load_db(master_password)
         if label not in db:
             print(f"Label '{label}' tidak ditemukan! Gunakan perintah 'add' untuk membuat akun baru.")
             del db
             sys.exit(1)
 
+        entry = db[label]
+        target = None
+        is_list = isinstance(entry, list)
+
+        if is_list:
+            if username is None:
+                usernames = [e['username'] for e in entry]
+                print(f"Terdapat beberapa akun untuk label '{label}'.")
+                print(f"Usernames: {', '.join(usernames)}")
+                print(f"Harap spesifikasikan username, contoh: python passman.py update {label} <username> [opsi]")
+                del db
+                sys.exit(1)
+            else:
+                for e in entry:
+                    if e["username"] == username:
+                        target = e
+                        break
+                if not target:
+                    print(f"Username '{username}' tidak ditemukan pada label '{label}'!")
+                    del db
+                    sys.exit(1)
+        else:
+            if username is not None and entry["username"] != username:
+                print(f"Username '{username}' tidak ditemukan pada label '{label}'!")
+                del db
+                sys.exit(1)
+            target = entry
+
         updated = False
         if password:
-            db[label]["password"] = password
+            target["password"] = password
             updated = True
         if notes is not None:
-            db[label]["notes"] = notes
+            target["notes"] = notes
             updated = True
             
         if not updated:
@@ -184,14 +226,43 @@ class PasswordManager:
         
         del db, password
 
-    def delete_entry(self, master_password: str, label: str):
+    def delete_entry(self, master_password: str, label: str, username: str = None):
         db = self._load_db(master_password)
         if label not in db:
             print(f"Label '{label}' tidak ditemukan!")
             del db
             sys.exit(1)
 
-        del db[label]
+        entry = db[label]
+        is_list = isinstance(entry, list)
+
+        if is_list:
+            if username is None:
+                usernames = [e['username'] for e in entry]
+                print(f"Terdapat beberapa akun untuk label '{label}'.")
+                print(f"Usernames: {', '.join(usernames)}")
+                print(f"Harap spesifikasikan username, contoh: python passman.py delete {label} <username>")
+                del db
+                sys.exit(1)
+            else:
+                new_entry = [e for e in entry if e["username"] != username]
+                if len(new_entry) == len(entry):
+                    print(f"Username '{username}' tidak ditemukan pada label '{label}'!")
+                    del db
+                    sys.exit(1)
+                
+                if len(new_entry) == 1:
+                    db[label] = new_entry[0]
+                elif len(new_entry) == 0:
+                    del db[label]
+                else:
+                    db[label] = new_entry
+        else:
+            if username is not None and entry["username"] != username:
+                print(f"Username '{username}' tidak ditemukan pada label '{label}'!")
+                del db
+                sys.exit(1)
+            del db[label]
         
         print(f"Mencabut dan menghapus data [{label}] dari {self.db_path}...")
         self._save_db(db, master_password)
@@ -199,7 +270,7 @@ class PasswordManager:
         
         del db
 
-    def get_entry(self, master_password: str, label: str):
+    def get_entry(self, master_password: str, label: str, username: str = None):
         db = self._load_db(master_password)
         
         if label not in db:
@@ -208,10 +279,37 @@ class PasswordManager:
             sys.exit(1)
             
         entry = db[label]
-        pwd = entry["password"]
-        print(f"Username: {entry['username']}")
-        if "notes" in entry and entry["notes"]:
-            print(f"Notes   : {entry['notes']}")
+        target = None
+        is_list = isinstance(entry, list)
+
+        if is_list:
+            if username is None:
+                usernames = [e['username'] for e in entry]
+                print(f"Terdapat beberapa akun untuk label '{label}'.")
+                print(f"Usernames: {', '.join(usernames)}")
+                print(f"Harap spesifikasikan username, contoh: python passman.py get {label} <username>")
+                del db
+                sys.exit(1)
+            else:
+                for e in entry:
+                    if e["username"] == username:
+                        target = e
+                        break
+                if not target:
+                    print(f"Username '{username}' tidak ditemukan pada label '{label}'!")
+                    del db
+                    sys.exit(1)
+        else:
+            if username is not None and entry["username"] != username:
+                print(f"Username '{username}' tidak ditemukan pada label '{label}'!")
+                del db
+                sys.exit(1)
+            target = entry
+
+        pwd = target["password"]
+        print(f"Username: {target['username']}")
+        if "notes" in target and target["notes"]:
+            print(f"Notes   : {target['notes']}")
         
         if HAS_PYCLIP:
             pyperclip.copy(pwd)
@@ -241,7 +339,11 @@ class PasswordManager:
             
         print("\nDaftar Akun Tersimpan:")
         for label, data in db.items():
-            print(f"- {label} ({data['username']})")
+            if isinstance(data, list):
+                for item in data:
+                    print(f"- {label} ({item['username']})")
+            else:
+                print(f"- {label} ({data['username']})")
             
         del db
 
@@ -273,13 +375,16 @@ def main():
 
     cmd_update = subparsers.add_parser("update", help="Perbarui password pada akun yang telah ada")
     cmd_update.add_argument("label", help="Label aplikasi yang ingin diperbarui sandinya")
+    cmd_update.add_argument("username", nargs="?", default=None, help="Username (diperlukan jika label memiliki >1 akun)")
     cmd_update.add_argument("-n", "--notes", default=None, help="Perbarui catatan (opsional)")
 
     cmd_del = subparsers.add_parser("delete", help="Hapus akun permanen dari vault")
     cmd_del.add_argument("label", help="Label aplikasi yang ingin dihapus")
+    cmd_del.add_argument("username", nargs="?", default=None, help="Username (diperlukan jika label memiliki >1 akun)")
 
     cmd_get = subparsers.add_parser("get", help="Ambil password tersimpan")
     cmd_get.add_argument("label", help="Label aplikasi yang ingin diambil")
+    cmd_get.add_argument("username", nargs="?", default=None, help="Username (diperlukan jika label memiliki >1 akun)")
 
     subparsers.add_parser("list", help="Lihat semua akun tersimpan")
 
@@ -339,15 +444,15 @@ def main():
                 print("Password acak generator telah digunakan.")
             elif not pwd:
                 pwd = None
-            pm.update_entry(mp, args.label, pwd, args.notes)
+            pm.update_entry(mp, args.label, args.username, pwd, args.notes)
             if pwd:
                 del pwd
             
         elif args.command == "delete":
-            pm.delete_entry(mp, args.label)
+            pm.delete_entry(mp, args.label, args.username)
             
         elif args.command == "get":
-            pm.get_entry(mp, args.label)
+            pm.get_entry(mp, args.label, args.username)
             
         elif args.command == "list":
             pm.list_entries(mp)
