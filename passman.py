@@ -138,7 +138,7 @@ class PasswordManager:
             
         del key, data
 
-    def add_entry(self, master_password: str, label: str, username: str, password: str):
+    def add_entry(self, master_password: str, label: str, username: str, password: str, notes: str = ""):
         db = self._load_db(master_password)
         # Hindari duplikasi
         if label in db:
@@ -148,7 +148,8 @@ class PasswordManager:
 
         db[label] = {
             "username": username,
-            "password": password
+            "password": password,
+            "notes": notes
         }
         
         print(f"Menyimpan ke {self.db_path}...")
@@ -157,16 +158,27 @@ class PasswordManager:
         
         del db, password
 
-    def update_entry(self, master_password: str, label: str, password: str):
+    def update_entry(self, master_password: str, label: str, password: str = None, notes: str = None):
         db = self._load_db(master_password)
         if label not in db:
             print(f"Label '{label}' tidak ditemukan! Gunakan perintah 'add' untuk membuat akun baru.")
             del db
             sys.exit(1)
 
-        db[label]["password"] = password
-        
-        print(f"Memperbarui kredensial sandi untuk {label}...")
+        updated = False
+        if password:
+            db[label]["password"] = password
+            updated = True
+        if notes is not None:
+            db[label]["notes"] = notes
+            updated = True
+            
+        if not updated:
+            print("Tidak ada data yang diperbarui.")
+            del db
+            return
+            
+        print(f"Memperbarui data untuk {label}...")
         self._save_db(db, master_password)
         print(f"Password [{label}] berhasil diperbarui.")
         
@@ -198,6 +210,8 @@ class PasswordManager:
         entry = db[label]
         pwd = entry["password"]
         print(f"Username: {entry['username']}")
+        if "notes" in entry and entry["notes"]:
+            print(f"Notes   : {entry['notes']}")
         
         if HAS_PYCLIP:
             pyperclip.copy(pwd)
@@ -255,9 +269,11 @@ def main():
     cmd_add = subparsers.add_parser("add", help="Tambah record password (akun baru)")
     cmd_add.add_argument("label", help="Nama web/layanan (contoh: github)")
     cmd_add.add_argument("username", help="Username/email terkait identifier akun")
+    cmd_add.add_argument("-n", "--notes", default="", help="Catatan tambahan (opsional)")
 
     cmd_update = subparsers.add_parser("update", help="Perbarui password pada akun yang telah ada")
     cmd_update.add_argument("label", help="Label aplikasi yang ingin diperbarui sandinya")
+    cmd_update.add_argument("-n", "--notes", default=None, help="Perbarui catatan (opsional)")
 
     cmd_del = subparsers.add_parser("delete", help="Hapus akun permanen dari vault")
     cmd_del.add_argument("label", help="Label aplikasi yang ingin dihapus")
@@ -313,16 +329,19 @@ def main():
             if not pwd:
                 pwd = pm.generate_password()
                 print("Password acak generator telah digunakan.")
-            pm.add_entry(mp, args.label, args.username, pwd)
+            pm.add_entry(mp, args.label, args.username, pwd, args.notes)
             del pwd
 
         elif args.command == "update":
-            pwd = getpass.getpass(f"Masukkan password BARU untuk {args.label} (Kosongkan lalu ENTER untuk generate): ")
-            if not pwd:
+            pwd = getpass.getpass(f"Masukkan password BARU untuk {args.label} (Kosongkan untuk abaikan sandi, isi '-' untuk generate): ")
+            if pwd == "-":
                 pwd = pm.generate_password()
                 print("Password acak generator telah digunakan.")
-            pm.update_entry(mp, args.label, pwd)
-            del pwd
+            elif not pwd:
+                pwd = None
+            pm.update_entry(mp, args.label, pwd, args.notes)
+            if pwd:
+                del pwd
             
         elif args.command == "delete":
             pm.delete_entry(mp, args.label)

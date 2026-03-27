@@ -57,17 +57,19 @@ python passman.py init
 
 ### 2. Menyimpan Password Baru ke Vault
 ```bash
-python passman.py add <label_aplikasi> <username>
-# Contoh:
+python passman.py add <label_aplikasi> <username> [-n "catatan tambahan"]
+# Contoh 1: Menambahkan kredensial biasa
 python passman.py add github octocat@gmail.com
+# Contoh 2: Menambahkan kredensial beserta catatan pemulihan/recovery code
+python passman.py add github octocat@gmail.com -n "Recovery: 1234-ABCD"
 ```
 *Program akan meminta Master Password Anda, lalu menyuruh Anda memasukkan password baru untuk Github. Tekan/Kosongkan ENTER pada form password jika ingin alat ini yang otomatis memikirkannya (Auto-Generate).*
 
 ### 3. Memperbarui Password (Update / Siklus Rotasi)
 ```bash
-python passman.py update github
+python passman.py update github [-n "catatan baru"]
 ```
-*Mengganti kata sandi untuk kredensial web/label yang sebelumnya sudah tersimpan di dalam database Anda.*
+*Mengganti kata sandi atau catatan untuk kredensial web/label yang sebelumnya sudah tersimpan di dalam database Anda. Anda bisa mengosongkan kata sandi pada *prompt* jika hanya ingin mengubah Catatan/Notes saja.*
 
 ### 4. Menghapus Akun Permanen (Delete)
 ```bash
@@ -81,7 +83,7 @@ python passman.py get github
 ```
 *Bila Master Password benar, ia akan secara mandiri memasukkan password Github milik Anda langsung ke clipboard/fitur "Copy" sistem Anda.*
 
-### 6. Melihat Daftar Aplikasi
+### 6. Melihat Daftar Akun
 ```bash
 python passman.py list
 ```
