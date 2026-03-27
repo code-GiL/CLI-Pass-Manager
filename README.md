@@ -1,6 +1,6 @@
 # Secure CLI Password Manager
 
-Sebuah aplikasi pengelola kata sandi berbasis antarmuka baris perintah (*Command Line Interface / CLI*) yang dirancang khusus menggunakan standar kriptografi modern. Proyek ini sangat berfokus pada ketahanan terhadap upaya pembongkaran paksa secara *offline* (*Offline Brute-Force Attacks*) dan perlindungan privasi jangka pendek (seperti *clipboard snooping*).
+Sebuah aplikasi pengelola kata sandi berbasis *Command Line Interface / CLI* yang dirancang khusus menggunakan standar kriptografi modern. Proyek ini sangat berfokus pada ketahanan terhadap upaya pembongkaran paksa secara *offline* (*Offline Brute-Force Attacks*) dan perlindungan privasi jangka pendek (seperti *clipboard snooping*).
 
 ---
 
@@ -25,7 +25,13 @@ Aplikasi ini bersifat **Lintas-Platform (Cross-Platform)** dan dijamin dapat ber
 
 Pastikan Anda memiliki instalasi Python 3. Karena aplikasi mengakses antarmuka kriptografi tingkat rendah, ikuti panduan instalasi berikut:
 
-1. _(Opsional namun direkomendasikan)_ Buat *Virtual Environment*:
+1. Clone repositori ini dari GitHub dan masuk ke dalam foldernya:
+   ```bash
+   git clone https://github.com/<username>/CLI-Pass-Manager.git
+   cd CLI-Pass-Manager
+   ```
+
+2. _(Opsional namun direkomendasikan)_ Buat *Virtual Environment*:
    ```bash
    python3 -m venv venv
    
@@ -36,7 +42,7 @@ Pastikan Anda memiliki instalasi Python 3. Karena aplikasi mengakses antarmuka k
    venv\Scripts\activate
    ```
 
-2. Instal pustaka kriptografi beserta `pyperclip`:
+3. Instal pustaka kriptografi beserta `pyperclip`:
    ```bash
    pip install -r requirements.txt
    ```
